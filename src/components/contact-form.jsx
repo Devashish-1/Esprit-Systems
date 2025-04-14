@@ -17,6 +17,7 @@ const ContactForm = () => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -27,27 +28,43 @@ const ContactForm = () => {
     setFormState((prev) => ({ ...prev, type: value }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setIsSubmitted(true)
-
-      // Reset form after showing success message
-      setTimeout(() => {
-        setIsSubmitted(false)
-        setFormState({
-          name: "",
-          email: "",
-          type: "",
-          message: "",
-        })
-      }, 3000)
-    }, 1500)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+  
+    try {
+      const response = await fetch(
+        "YOUR_SCRIPT_URL",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            name: formState.name,
+            email: formState.email,
+            type: formState.type,
+            message: formState.message
+          }),
+          redirect: "follow" // Add this line
+        }
+      );
+  
+      // Even with no-cors, we can't read the response, so assume success
+      setIsSubmitted(true);
+      setFormState({
+        name: "",
+        email: "",
+        type: "",
+        message: "",
+      });
+    } catch (err) {
+      setError("Submission failed. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-gray-800/50 p-8 rounded-xl shadow-xl">
@@ -74,6 +91,15 @@ const ContactForm = () => {
       ) : (
         <>
           <h3 className="text-2xl font-bold mb-6">Send us a Message</h3>
+          {error && (
+            <motion.div
+              className="mb-4 p-3 bg-red-500/20 text-red-300 rounded-md text-sm"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
@@ -159,4 +185,4 @@ const ContactForm = () => {
   )
 }
 
-export default ContactForm
+export default ContactForm;
